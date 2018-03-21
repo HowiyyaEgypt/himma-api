@@ -132,8 +132,8 @@ class BondController extends Controller
         $bond = Bond::create(['sender_id' => $bond_partner_id , 'receiver_id' => $user->id]);
 
         // attaching bonds to bond_user pivot to both users
-        $bond_partner->bonds()->save($bond);
-        $user->bonds()->save($bond);
+        $bond_partner->bonds()->syncWithoutDetaching($bond->id);
+        $user->bonds()->syncWithoutDetaching($bond->id);
 
         // deattaching the pending bond record, we can remove it from the user (receiver) or the other part (sender)
         $user->receivedPendingBonds->where('sender_id', $bond_partner_id)->first()->delete();
@@ -142,6 +142,52 @@ class BondController extends Controller
         
         return response()
         ->json(['success' => true, 'message' => 'You are now connected with ' . $bond_partner->name])
+        ->setStatusCode(200);
+    }
+
+    /**
+     * Breaking an existing bond
+     * 
+     * @returns ??
+     */
+    public function breakBond(Bond $bond, Request $request)
+    {
+        $user = $this->APIAuthenticate();
+        
+        $validator = Validator::make($request->all(), [
+            'bond_partner_id'   => 'required|numeric|exists:users,id'
+        ]);
+
+        if ( $validator->fails() ){
+            throw new ValidationException($validator->errors()->first());       
+        }
+
+        $bond_partners_array = $user->bond_partners;
+        $bond_partner_id = $request->get('bond_partner_id');
+        $bond_partner = User::find($bond_partner_id);
+
+        // checking if the user already has a bond with the other part
+        if (!in_array($bond_partner_id, $bond_partners_array)) {
+            throw new ValidationException( "You don't have a bond with " . $bond_partner->name);       
+        }
+
+        // the user may have a bond but we need to validate it is the exact
+        if ($bond->partner->id != $bond_partner_id || $bond->user->id != $user->id) {
+            return response()
+            ->json(['success' => false, 'message' => "Invalid bond"])
+            ->setStatusCode(450);
+        }
+
+        // all is Ok
+        $user->bonds()->detach($bond->id);
+        $bond_partner->bonds()->detach($bond->id);
+
+        $bond->delete();
+
+        // TODO: notify partner of break up
+
+        return response()
+        ->json(['success' => true, 'message' => 'The bond with ' . $bond_partner->name . ' has been deleted'])
         ->setStatusCode(200);
     }
 }

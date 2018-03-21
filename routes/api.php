@@ -28,3 +28,4 @@ Route::post('/bonds', 'BondController@listMyBonds');
 Route::post('/pending-bonds', 'BondController@listMyPendingBonds');
 Route::post('/add-bond', 'BondController@addNewBond');
 Route::post('/accept-bond', 'BondController@acceptNewBond');
+Route::post('/break-bond/{bond}', 'BondController@breakBond');
