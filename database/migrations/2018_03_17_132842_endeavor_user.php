@@ -22,6 +22,8 @@ class EndeavorUser extends Migration
             $table->integer('endeavor_id')->unsigned();
             $table->foreign('endeavor_id')->references('id')->on('endeavors');
 
+            $table->integer('notification_type')->default(1);
+
             $table->timestamps();
         });
     }

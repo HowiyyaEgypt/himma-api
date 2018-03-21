@@ -26,6 +26,15 @@ class RouteServiceProvider extends ServiceProvider
     protected $api_namespace = 'App\Http\Controllers\Api';
 
     /**
+     * This namespace is applied to your controller routes.
+     *
+     * In addition, it is set as the URL generator's root namespace.
+     *
+     * @var string
+     */
+    protected $frontend_namespace = 'App\Http\Controllers\Frontend';
+
+    /**
      * Define your route model bindings, pattern filters, etc.
      *
      * @return void
@@ -61,7 +70,8 @@ class RouteServiceProvider extends ServiceProvider
     protected function mapWebRoutes()
     {
         Route::middleware('web')
-             ->namespace($this->namespace)
+             ->namespace($this->frontend_namespace)
+             ->domain( env( 'APP_URL', 'himmav2.test' ) )
              ->group(base_path('routes/web.php'));
     }
 
@@ -77,6 +87,7 @@ class RouteServiceProvider extends ServiceProvider
         Route::prefix('api')
              ->middleware('api')
              ->namespace($this->api_namespace)
+             ->domain( env( 'API_URL', 'api.himmav2.test' ) )
              ->group(base_path('routes/api.php'));
     }
 }

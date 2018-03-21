@@ -33,6 +33,6 @@ class BondUser extends Migration
      */
     public function down()
     {
-        //
+        Schema::dropIfExists('bond_user');
     }
 }
